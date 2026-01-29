@@ -1,7 +1,7 @@
 # ============================================
 # GitHub Actions - Terraform GKE Deployment
 # ============================================
-# File: .github/workflows/terraform.yml
+# File: .github/workflows/gke-terraform.yml
 #
 # This workflow:
 # 1. Validates Terraform on PR
@@ -17,7 +17,7 @@ on:
       - main
     paths:
       - 'infrastructure/terraform/**'
-      - '.github/workflows/terraform.yml'
+      - '.github/workflows/gke-terraform.yml'
   
   pull_request:
     branches:
