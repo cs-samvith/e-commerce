@@ -3,3 +3,4 @@
 /services/product-service/app/__pycache__
 /services/user-service/app/__pycache__
 /services/user-service/venv
+/infrastructure/terraform/gcp/.terraform
