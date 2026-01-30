@@ -8,7 +8,7 @@
 
 resource "google_container_cluster" "primary" {
   name     = "${var.cluster_name}-cheap"
-  location = var.zone  # Zonal cluster (free tier eligible!)
+  location = "us-east1-b"  # Zonal cluster (free tier eligible!)
   
   # We can't create a cluster with no node pool defined, so we create the
   # smallest possible default node pool and immediately delete it.
@@ -18,6 +18,8 @@ resource "google_container_cluster" "primary" {
   # Network configuration
   network    = "default"
   subnetwork = "default"
+
+   deletion_protection = false
   
   # Disable expensive features
   logging_service    = "none"  # Save ~$10/month
@@ -54,8 +56,8 @@ resource "google_container_cluster" "primary" {
 # ============================================
 
 resource "google_container_node_pool" "cheap_nodes" {
-  name       = "cheap-node-pool"
-  location   = var.zone
+  name       = "c-node-pool"
+  location   = "us-east1-b"
   cluster    = google_container_cluster.primary.name
   
   # Autoscaling - scale down to 1 when idle
@@ -63,6 +65,8 @@ resource "google_container_node_pool" "cheap_nodes" {
     min_node_count = 1  # Minimum to keep costs down
     max_node_count = 3  # Maximum for burst capacity
   }
+
+  
   
   # Node configuration
   node_config {
@@ -73,7 +77,7 @@ resource "google_container_node_pool" "cheap_nodes" {
     machine_type = "e2-medium"  # 2 vCPU, 4GB RAM (~$9/month with spot pricing)
     
     # Minimal disk
-    disk_size_gb = 10
+    disk_size_gb = 20
     disk_type    = "pd-standard"  # Standard HDD (cheapest)
     
     # Container-Optimized OS
