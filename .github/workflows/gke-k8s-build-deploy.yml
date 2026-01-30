@@ -1,0 +1,101 @@
+name: Build, Push and Deploy to GKE
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  GKE_CLUSTER: ccluster-cheap
+  GKE_ZONE: us-east1-b
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+
+jobs:
+  build-push:
+    name: Build and Push ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: 
+          - frontend-service
+          - product-service
+          - user-service
+          # Add more services here
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build and Push ${{ matrix.service }}
+      run: |
+        SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+        
+        if [ -d "services/${{ matrix.service }}" ]; then
+          docker build \
+            -t $DOCKER_USERNAME/ecommerce-${{ matrix.service }}:$SHORT_SHA \
+            -t $DOCKER_USERNAME/ecommerce-${{ matrix.service }}:latest \
+            ./services/${{ matrix.service }}
+          
+          docker push $DOCKER_USERNAME/ecommerce-${{ matrix.service }}:$SHORT_SHA
+          docker push $DOCKER_USERNAME/ecommerce-${{ matrix.service }}:latest
+          
+          echo "✅ Built and pushed ${{ matrix.service }}"
+        else
+          echo "⚠️ Service directory not found: services/${{ matrix.service }}"
+        fi
+
+  deploy:
+    name: Deploy to GKE
+    runs-on: ubuntu-latest
+    needs: build-push
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Install gke-gcloud-auth-plugin
+      run: gcloud components install gke-gcloud-auth-plugin
+
+    - name: Get GKE credentials
+      run: |
+        gcloud container clusters get-credentials $GKE_CLUSTER \
+          --zone $GKE_ZONE \
+          --project $PROJECT_ID
+
+    - name: Update image tags in manifests
+      run: |
+        SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+        find kubernetes -name "*.yaml" -type f -exec sed -i \
+          "s|$DOCKER_USERNAME/ecommerce-\([^:]*\):.*|$DOCKER_USERNAME/ecommerce-\1:$SHORT_SHA|g" {} \;
+
+    - name: Deploy to GKE
+      run: kubectl apply -f kubernetes/
+
+    - name: Verify deployment
+      run: |
+        kubectl rollout status deployment --all -n default
+        kubectl get pods -n default
+
+    - name: Display deployed versions
+      run: |
+        echo "Deployed image versions:"
+        kubectl get pods -n default -o jsonpath="{range .items[*]}{.metadata.name}{'\t'}{.spec.containers[*].image}{'\n'}{end}"
