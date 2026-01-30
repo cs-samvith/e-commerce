@@ -96,7 +96,7 @@ jobs:
 
     - name: Verify deployment
       run: |
-        kubectl rollout status deployment --all -n default
+        kubectl rollout status deployment --all -n e-commerce
         kubectl get pods -n default
 
     - name: Display deployed versions
