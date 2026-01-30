@@ -88,7 +88,11 @@ jobs:
           "s|$DOCKER_USERNAME/ecommerce-\([^:]*\):.*|$DOCKER_USERNAME/ecommerce-\1:$SHORT_SHA|g" {} \;
 
     - name: Deploy to GKE
-      run: kubectl apply -f kubernetes/
+      run: |
+        for dir in kubernetes/*/; do
+          echo "Applying configs in $dir"
+          kubectl apply -f "$dir" --recursive
+        done
 
     - name: Verify deployment
       run: |
