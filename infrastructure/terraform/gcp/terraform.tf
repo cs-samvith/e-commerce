@@ -63,7 +63,7 @@ resource "google_container_node_pool" "cheap_nodes" {
   # Autoscaling - scale down to 1 when idle
   autoscaling {
     min_node_count = 1  # Minimum to keep costs down
-    max_node_count = 3  # Maximum for burst capacity
+    max_node_count = 2  # Maximum for burst capacity
   }
 
   
@@ -74,7 +74,7 @@ resource "google_container_node_pool" "cheap_nodes" {
     spot = true
     
     # Smallest usable machine type
-    machine_type = "e2-medium"  # 2 vCPU, 4GB RAM (~$9/month with spot pricing)
+    machine_type = "e2-standard-2"  # 2 vCPU, 4GB RAM (~$9/month with spot pricing)
     
     # Minimal disk
     disk_size_gb = 20
