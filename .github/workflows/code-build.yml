@@ -1,4 +1,4 @@
-name: Build, Push and Deploy to GKE
+name: Build & Push Image to Docker
 
 on:
   push:
