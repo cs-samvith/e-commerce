@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: user-service
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: user=docker.io/samvidocker/ecommerce-user-service
+    argocd-image-updater.argoproj.io/user.update-strategy: latest
+    argocd-image-updater.argoproj.io/user.allow-tags: regexp:^[a-f0-9]{7}$
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-commit-message: |
+      Update user-service to {{.NewTag}}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/cs-samvith/e-commerce
+    targetRevision: main
+    path: kubernetes/02-services/user-service
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ecommerce
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
