@@ -30,7 +30,7 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-md mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">Login-V1</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Login-V2</h1>
 
       <div className="bg-white p-8 rounded-lg shadow-lg">
         {error && (
