@@ -7,23 +7,19 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: product=docker.io/samvidocker/ecommerce-product-service
     argocd-image-updater.argoproj.io/product.update-strategy: latest
     argocd-image-updater.argoproj.io/product.allow-tags: regexp:^[a-f0-9]{7}$
-    argocd-image-updater.argoproj.io/write-back-method: git
-    argocd-image-updater.argoproj.io/git-commit-message: |
-      Update product-service to {{.NewTag}}
+    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/git-creds
+    argocd-image-updater.argoproj.io/git-branch: main
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  
   source:
     repoURL: https://github.com/cs-samvith/e-commerce
     targetRevision: main
     path: kubernetes/02-services/product-service
-  
   destination:
     server: https://kubernetes.default.svc
     namespace: ecommerce
-  
   syncPolicy:
     automated:
       prune: true

@@ -4,27 +4,22 @@ metadata:
   name: frontend-service
   namespace: argocd
   annotations:
-    # ArgoCD Image Updater annotations
     argocd-image-updater.argoproj.io/image-list: frontend=docker.io/samvidocker/ecommerce-frontend-service
     argocd-image-updater.argoproj.io/frontend.update-strategy: latest
     argocd-image-updater.argoproj.io/frontend.allow-tags: regexp:^[a-f0-9]{7}$
-    argocd-image-updater.argoproj.io/write-back-method: git
-    argocd-image-updater.argoproj.io/git-commit-message: |
-      Update frontend-service to {{.NewTag}}
+    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/git-creds
+    argocd-image-updater.argoproj.io/git-branch: main
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  
   source:
     repoURL: https://github.com/cs-samvith/e-commerce
     targetRevision: main
-    path: kubernetes/02-services/frontend-service  # Points to manifest folder
-  
+    path: kubernetes/02-services/frontend-service
   destination:
     server: https://kubernetes.default.svc
     namespace: ecommerce
-  
   syncPolicy:
     automated:
       prune: true
