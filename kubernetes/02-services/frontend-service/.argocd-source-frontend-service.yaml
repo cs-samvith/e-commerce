@@ -1,0 +1,3 @@
+kustomize:
+  images:
+  - docker.io/samvidocker/ecommerce-frontend-service:d7c49f2
