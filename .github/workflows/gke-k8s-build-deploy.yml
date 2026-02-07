@@ -106,10 +106,10 @@ jobs:
 
     - name: Verify deployment
       run: |
-        kubectl rollout status deployment --all -n e-commerce
+        kubectl rollout status deployment --all -n ecommerce
         kubectl get pods -n default
 
     - name: Display deployed versions
       run: |
         echo "Deployed image versions:"
-        kubectl get pods -n default -o jsonpath="{range .items[*]}{.metadata.name}{'\t'}{.spec.containers[*].image}{'\n'}{end}"
+        kubectl get pods -n ecommerce -o jsonpath="{range .items[*]}{.metadata.name}{'\t'}{.spec.containers[*].image}{'\n'}{end}"
