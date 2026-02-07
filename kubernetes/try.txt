@@ -1,2 +1,6 @@
 kubectl top node 
 kubectl top pod
+
+
+1) recreate cluster 
+2) rewire everything 
