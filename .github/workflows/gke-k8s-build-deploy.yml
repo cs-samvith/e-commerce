@@ -89,9 +89,19 @@ jobs:
 
     - name: Deploy to GKE
       run: |
+        # for dir in kubernetes/*/; do
+        #   echo "Applying configs in $dir"
+        #   kubectl apply -f "$dir" --recursive
+        # done
+
         for dir in kubernetes/*/; do
-          echo "Applying configs in $dir"
-          kubectl apply -f "$dir" --recursive
+          [ -d "$dir" ] || continue
+          echo "📂 Applying configs in $dir"
+          # Find all YAML files excluding argocd-source and kustomization
+          find "$dir" -type f \( -name '*.yaml' -o -name '*.yml' \) \
+            -not -name '*argocd-source*' \
+            -not -name '*kustomization*' \
+            -exec kubectl apply -f {} \;
         done
 
     - name: Verify deployment
