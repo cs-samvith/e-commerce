@@ -1,4 +1,4 @@
-name: 'Terraform GKE Deployment'
+name: 'Install Argo on GKE'
 
 on:
   workflow_dispatch:
