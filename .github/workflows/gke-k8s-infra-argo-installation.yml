@@ -3,7 +3,9 @@ name: 'Install Argo on GKE'
 on:
   workflow_dispatch:
 
-# env:
+env:
+    GKE_ZONE: us-east1-b
+    PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
 
 jobs:
     install-argo:
