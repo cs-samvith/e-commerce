@@ -1,0 +1,38 @@
+name: 'Terraform GKE Deployment'
+
+on:
+  workflow_dispatch:
+
+# env:
+
+jobs:
+    install-argo:
+        name: Install Argo
+        runs-on: ubuntu-latest
+
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Authenticate to Google Cloud
+          uses: google-github-actions/auth@v2
+          with:
+            credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+        - name: Set up Cloud SDK
+          uses: google-github-actions/setup-gcloud@v2
+
+        - name: Install gke-gcloud-auth-plugin
+          run: gcloud components install gke-gcloud-auth-plugin
+
+        - name: Get GKE credentials
+          run: |
+            gcloud container clusters get-credentials $GKE_CLUSTER \
+            --zone $GKE_ZONE \
+            --project $PROJECT_ID
+        - name: Verify deployment
+          run: |
+                kubectl create namespace argocd
+                kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+                kubectl wait --for=condition=ready pod --all -n argocd --timeout=300s
+                kubectl get pods -n argocd

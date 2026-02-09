@@ -63,7 +63,7 @@ resource "google_container_node_pool" "cheap_nodes" {
   # Autoscaling - scale down to 1 when idle
   autoscaling {
     min_node_count = 1 # Minimum to keep costs down
-    max_node_count = 2 # Maximum for burst capacity
+    max_node_count = 1 # Maximum for burst capacity
   }
 
   # Node configuration
