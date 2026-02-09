@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
 
 env:
+    GKE_CLUSTER: ccluster-cheap
     GKE_ZONE: us-east1-b
     PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
 
