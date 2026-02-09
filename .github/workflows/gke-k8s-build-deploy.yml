@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - '.github/workflows/gke-k8s-build-deploy.yml'
   workflow_dispatch:
 
 env:
