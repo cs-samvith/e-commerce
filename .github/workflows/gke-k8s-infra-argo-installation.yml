@@ -45,9 +45,9 @@ jobs:
         #         kubectl get pods -n argocd
         #         pwd
 
-        - name: Install Argo Ingress
-          run: |
-                kubectl apply -f argocd-ingress.yaml
+        # - name: Install Argo Ingress
+        #   run: |
+        #         kubectl apply -f argocd-ingress.yaml
 
         - name: Install ArgoCD Image Updater
           run: |
@@ -66,6 +66,27 @@ jobs:
           run: |
                 kubectl apply -f argocd-image-updater-config.yaml
 
-        - name: Install Argo Ingress
+        - name: Restart Updater Controller
           run: |
                 kubectl -n argocd rollout restart deployment argocd-image-updater-controller
+
+#  Ingress install
+        - name: Disable ArgoCD's internal TLS
+          run: |
+                kubectl -n argocd patch configmap argocd-cmd-params-cm --type merge -p '{"data":{"server.insecure":"true"}}'
+                kubectl -n argocd rollout restart deployment argocd-server
+                kubectl -n argocd rollout status deployment argocd-server --timeout=120s
+
+        - name: Configure the BackendConfig for health checks
+          run: |
+                kubectl apply -f argocd-backend-config.yaml
+
+        - name: Annotate the ArgoCD service to use the BackendConfig
+          run: |
+                kubectl -n argocd annotate service argocd-server \
+                cloud.google.com/backend-config='{"default":"argocd-backend-config"}' \
+                --overwrite
+
+        - name: Install Argo Ingress
+          run: |
+                kubectl apply -f argocd-ingress.yaml
