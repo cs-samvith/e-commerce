@@ -49,3 +49,8 @@ jobs:
         - name: Install Argo Ingress
           run: |
                 kubectl apply -f argocd-ingress.yaml
+
+        - name: Install ArgoCD Image Updater
+          run: |
+                kubectl apply -n argocd -f kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/stable/config/install.yaml --server-side=true --force-conflicts
+                kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-image-updater -n argocd --timeout=120s
