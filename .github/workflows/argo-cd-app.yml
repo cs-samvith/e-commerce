@@ -1,0 +1,133 @@
+name: Setup ArgoCD Application
+
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       app_name:
+#         description: 'ArgoCD Application Name'
+#         required: true
+#         default: 'my-app'
+#       app_namespace:
+#         description: 'Namespace to deploy app into'
+#         required: true
+#         default: 'default'
+#       manifests_path:
+#         description: 'Path to K8s manifests in repo'
+#         required: true
+#         default: 'k8s'
+#       target_branch:
+#         description: 'Git branch to track'
+#         required: true
+#         default: 'main'
+#       docker_image:
+#         description: 'Docker Hub image (e.g. username/my-app)'
+#         required: true
+#       update_strategy:
+#         description: 'Image update strategy'
+#         required: true
+#         default: 'latest'
+#         type: choice
+#         options:
+#           - latest
+#           - semver
+#           - digest
+#           - name
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+    GKE_CLUSTER: ccluster-cheap
+    GKE_ZONE: us-east1-b
+    PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+    WORKING_DIR: 'argocd'
+    APP_NAME: 'ecommerce-apps'
+    APP_NAMESPACE: 'default'
+
+jobs:
+  setup-argocd-app:
+    runs-on: ubuntu-latest
+
+    defaults:
+        run:
+            working-directory: ${{ env.WORKING_DIR }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Install GKE Auth Plugin
+        run: |
+          gcloud components install gke-gcloud-auth-plugin --quiet
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials $GKE_CLUSTER \
+            --zone $GKE_ZONE \
+            --project $PROJECT_ID
+
+      - name: Install ArgoCD CLI
+        run: |
+          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x argocd
+          sudo mv argocd /usr/local/bin/
+
+      - name: Get ArgoCD Admin Password
+        id: argocd-password
+        run: |
+          ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+          echo "::add-mask::$ARGOCD_PASSWORD"
+          echo "password=$ARGOCD_PASSWORD" >> $GITHUB_OUTPUT
+
+      - name: Login to ArgoCD
+        run: |
+          ARGOCD_SERVER=$(kubectl -n argocd get ingress argocd-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          argocd login $ARGOCD_SERVER \
+            --username admin \
+            --password ${{ steps.argocd-password.outputs.password }} \
+            --insecure
+
+      - name: Add Git Repository to ArgoCD
+        run: |
+          REPO_URL="https://github.com/${{ github.repository }}.git"
+
+          # Add repo (skip if already added)
+          argocd repo add $REPO_URL \
+            --username ${{ github.actor }} \
+            --password ${{ secrets.GIT_TOKEN }} \
+            --upsert || true
+
+          echo "Repository added: $REPO_URL"
+
+      - name: Create ArgoCD Application
+        run: |
+           kubectl apply -f argocd/app-of-apps.yaml
+
+      - name: Wait for Application Sync
+        run: |
+          echo "Waiting for application to sync..."
+          argocd app wait $APP_NAME --timeout 120 || true
+
+      - name: Verify Application Status
+        run: |
+          echo "=== Application Status ==="
+          argocd app get $APP_NAME
+
+          echo ""
+          echo "=== Image Updater Logs ==="
+          kubectl -n argocd logs deploy/argocd-image-updater-controller --tail=20
+
+          echo ""
+          echo "=== Application Pods ==="
+          kubectl get pods -n $APP_NAMESPACE
