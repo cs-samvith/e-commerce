@@ -37,13 +37,13 @@ jobs:
             gcloud container clusters get-credentials $GKE_CLUSTER \
             --zone $GKE_ZONE \
             --project $PROJECT_ID
-        - name: Install ArgoCD
-          run: |
-                kubectl get namespace argocd || kubectl create namespace argocd
-                kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml --ignore-not-found
-                kubectl create -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-                kubectl get pods -n argocd
-                pwd
+        # - name: Install ArgoCD
+        #   run: |
+        #         kubectl get namespace argocd || kubectl create namespace argocd
+        #         kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml --ignore-not-found
+        #         kubectl create -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+        #         kubectl get pods -n argocd
+        #         pwd
 
         - name: Install Argo Ingress
           run: |
@@ -62,21 +62,10 @@ jobs:
             --docker-password=${{ secrets.DOCKER_PASSWORD }} \
             -n argocd --dry-run=client -o yaml | kubectl apply -f -
 
-        - name: Configure Image Updater for Docker Hub
+        - name: Create Argocd Image Updater config Map
           run: |
-                cat <<EOF | kubectl apply -f -
-                apiVersion: v1
-                kind: ConfigMap
-                metadata:
-                name: argocd-image-updater-config
-                namespace: argocd
-                data:
-                registries.conf: |
-                    registries:
-                    - name: Docker Hub
-                        prefix: docker.io
-                        api_url: https://registry-1.docker.io
-                        credentials: pullsecret:argocd/dockerhub-credentials
-                        defaultns: library
-                EOF
+                kubectl apply -f argocd-image-updater-config.yaml
+
+        - name: Install Argo Ingress
+          run: |
                 kubectl -n argocd rollout restart deployment argocd-image-updater
