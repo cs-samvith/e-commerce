@@ -13,7 +13,7 @@ spec:
   rules:
     - http:
         paths:
-          - path: /argo
+          - path: /
             pathType: ImplementationSpecific
             backend:
               service:
