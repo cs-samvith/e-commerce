@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-ingress
+  namespace: argocd
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    # For HTTPS - optional, uncomment if you want SSL
+    # kubernetes.io/ingress.global-static-ip-name: "ecommerce-ip"
+    # networking.gke.io/managed-certificates: "ecommerce-cert"
+    # kubernetes.io/ingress.allow-http: "true"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /argo
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 80

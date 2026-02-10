@@ -7,6 +7,7 @@ env:
     GKE_CLUSTER: ccluster-cheap
     GKE_ZONE: us-east1-b
     PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+    WORKING_DIR: 'argocd'
 
 jobs:
     install-argo:
@@ -35,8 +36,8 @@ jobs:
             --project $PROJECT_ID
         - name: Install ArgoCD
           run: |
-                kubectl delete namespace argocd 
-                kubectl create namespace argocd
-                kubectl create -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+                kubectl get namespace argocd || kubectl create namespace argocd
+                kubectl create -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml --server-side=true --force-conflicts
                 kubectl wait --for=condition=ready pod --all -n argocd --timeout=300s
                 kubectl get pods -n argocd
+                kubectl apply -f argocd-ingress.yaml
