@@ -11,3 +11,4 @@ data:
           api_url: https://registry-1.docker.io
           credentials: pullsecret:argocd/dockerhub-credentials
           defaultns: library
+    argocd-image-updater.check-interval: "30m"
