@@ -68,4 +68,4 @@ jobs:
 
         - name: Install Argo Ingress
           run: |
-                kubectl -n argocd rollout restart deployment argocd-image-updater
+                kubectl -n argocd rollout restart deployment argocd-image-updater-controller
