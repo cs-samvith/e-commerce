@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: product-service
   namespace: ecommerce
+  annotations:
+    argocd.argoproj.io/sync-wave: "4" 
   labels:
     app: product-service
     version: v1

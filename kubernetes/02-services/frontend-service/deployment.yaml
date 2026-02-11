@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: frontend-service
   namespace: ecommerce
+  annotations:
+    argocd.argoproj.io/sync-wave: "4" 
   labels:
     app: frontend-service
     version: v1

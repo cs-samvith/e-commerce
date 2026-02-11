@@ -3,6 +3,8 @@ kind: StatefulSet
 metadata:
   name: rabbitmq
   namespace: ecommerce
+  annotations:
+    argocd.argoproj.io/sync-wave: "4" 
 spec:
   serviceName: rabbitmq-service
   replicas: 1

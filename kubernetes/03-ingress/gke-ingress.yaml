@@ -4,6 +4,7 @@ metadata:
   name: ecommerce-ingress
   namespace: ecommerce
   annotations:
+    argocd.argoproj.io/sync-wave: "6" 
     kubernetes.io/ingress.class: "gce"
     # For HTTPS - optional, uncomment if you want SSL
     # kubernetes.io/ingress.global-static-ip-name: "ecommerce-ip"
