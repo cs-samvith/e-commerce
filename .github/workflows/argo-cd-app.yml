@@ -90,14 +90,14 @@ jobs:
           echo "::add-mask::$ARGOCD_PASSWORD"
           echo "password=$ARGOCD_PASSWORD" >> $GITHUB_OUTPUT
 
-      - name: Login to ArgoCD
-        run: |
-          ARGOCD_SERVER=$(kubectl -n argocd get ingress argocd-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-          argocd login $ARGOCD_SERVER \
-            --username admin \
-            --password ${{ steps.argocd-password.outputs.password }} \
-            --insecure \
-            --grpc-web
+    #   - name: Login to ArgoCD
+    #     run: |
+    #       ARGOCD_SERVER=$(kubectl -n argocd get ingress argocd-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    #       argocd login $ARGOCD_SERVER \
+    #         --username admin \
+    #         --password ${{ steps.argocd-password.outputs.password }} \
+    #         --insecure \
+    #         --grpc-web
 
       - name: Add Git Repository to ArgoCD
         run: |
