@@ -120,15 +120,32 @@ jobs:
           echo "Waiting for application to sync..."
           argocd app wait $APP_NAME --timeout 120 || true
 
+    #   - name: Verify Application Status
+    #     run: |
+    #       echo "=== Application Status ==="
+    #       argocd app get $APP_NAME
+
+    #       echo ""
+    #       echo "=== Image Updater Logs ==="
+    #       kubectl -n argocd logs deploy/argocd-image-updater-controller --tail=20
+
+    #       echo ""
+    #       echo "=== Application Pods ==="
+    #       kubectl get pods -n $APP_NAMESPACE
+
       - name: Verify Application Status
         run: |
-          echo "=== Application Status ==="
-          argocd app get $APP_NAME
+            echo "=== Application Status ==="
+            kubectl get applications -n argocd
 
-          echo ""
-          echo "=== Image Updater Logs ==="
-          kubectl -n argocd logs deploy/argocd-image-updater-controller --tail=20
+            echo ""
+            echo "=== Application Details ==="
+            kubectl describe application ecommerce-apps -n argocd
 
-          echo ""
-          echo "=== Application Pods ==="
-          kubectl get pods -n $APP_NAMESPACE
+            echo ""
+            echo "=== Image Updater Logs ==="
+            kubectl -n argocd logs deploy/argocd-image-updater-controller --tail=20
+
+            echo ""
+            echo "=== Application Pods ==="
+            kubectl get pods -n $APP_NAMESPACE
