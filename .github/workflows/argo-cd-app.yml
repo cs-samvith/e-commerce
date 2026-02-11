@@ -97,6 +97,7 @@ jobs:
             --username admin \
             --password ${{ steps.argocd-password.outputs.password }} \
             --insecure
+            --grpc-web
 
       - name: Add Git Repository to ArgoCD
         run: |
