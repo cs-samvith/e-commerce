@@ -96,7 +96,7 @@ jobs:
           argocd login $ARGOCD_SERVER \
             --username admin \
             --password ${{ steps.argocd-password.outputs.password }} \
-            --insecure
+            --insecure \
             --grpc-web
 
       - name: Add Git Repository to ArgoCD
